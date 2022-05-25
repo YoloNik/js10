@@ -11,6 +11,8 @@ const cardContainer = document.querySelector(`.country-info`);
 const countryList = document.querySelector(`.country-list`);
 
 userSerch.addEventListener(`input`, debounce(onChangeInput, DEBOUNCE_DELAY));
+countryList.addEventListener(`click`, onCountryCLick);
+
 let countryName;
 function onChangeInput(e) {
   countryName = e.target.value.trim();
@@ -19,7 +21,21 @@ function onChangeInput(e) {
       renderCardList(data);
     });
   }
-  clearPages();
+  if (countryName === ``) {
+    clearPages();
+  }
+}
+
+function onCountryCLick(e) {
+  const countryCLick = e.target.closest(`.onHover`);
+  countryName = countryCLick.outerText;
+  if (countryCLick) {
+    userSerch.value = countryCLick.outerText.replace('%20', ' ').trim();
+    fetchCountries(countryName).then(data => {
+      renderCardList(data);
+    });
+    console.log(countryCLick.outerText);
+  }
 }
 
 function fetchCountries(countryName) {
@@ -36,8 +52,7 @@ function fetchCountries(countryName) {
 }
 
 function renderCardList(countries) {
-  countryList.innerHTML = ``;
-  cardContainer.innerHTML = ``;
+  clearPages();
   if (countries.length >= 10) {
     Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
   } else if (countries.length < 10 && countries.length > 2) {
@@ -48,6 +63,7 @@ function renderCardList(countries) {
       })
       .slice(0, 10)
       .join(``);
+
     return (countryList.innerHTML = cardListTemp);
   } else if (countries.length === 1) {
     countryList.innerHTML = ``;
@@ -58,8 +74,6 @@ function renderCardList(countries) {
 }
 
 function clearPages() {
-  if (countryName === ``) {
-    countryList.innerHTML = ``;
-    cardContainer.innerHTML = ``;
-  }
+  countryList.innerHTML = ``;
+  cardContainer.innerHTML = ``;
 }
