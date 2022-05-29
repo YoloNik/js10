@@ -1,3 +1,4 @@
+import async from 'hbs/lib/async';
 import debounce from 'lodash.debounce';
 import Notiflix from 'notiflix';
 import './css/styles.css';
@@ -34,25 +35,30 @@ function onCountryCLick(e) {
     fetchCountries(countryName).then(data => {
       renderCardList(data);
     });
-    console.log(countryCLick.outerText);
   }
 }
 
-function fetchCountries(countryName) {
-  return fetch(
+async function fetchCountries(countryName) {
+  const fetchedData = await fetch(
     `https://restcountries.com/v2/name/${countryName}?fields=name,capital,population,flags,languages`,
   )
     .then(response => {
+      if (response.status === 404) throw new Error();
       return response.json();
     })
     .then(data => {
       return data;
     })
-    .catch(error => console.log(error));
+    .catch(error => {
+      Notiflix.Notify.failure('Oops, there is no country with that name');
+    });
+  return fetchedData;
 }
 
 function renderCardList(countries) {
   clearPages();
+  if (!countries) return;
+
   if (countries.length >= 10) {
     Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
   } else if (countries.length < 10 && countries.length > 2) {
@@ -68,8 +74,6 @@ function renderCardList(countries) {
   } else if (countries.length === 1) {
     countryList.innerHTML = ``;
     cardContainer.innerHTML = card(countries[0]);
-  } else {
-    Notiflix.Notify.failure('Oops, there is no country with that name');
   }
 }
 
